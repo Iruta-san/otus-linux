@@ -6,7 +6,8 @@
 
 ## 2. **Обновление ядра из исходных кодов с подключением общей с хостом директории
 
-Используем за основу материалы из репозитория 
+Используем за основу материалы из репозитория https://github.com/dmitry-lyutenko/manual_kernel_update
+
 Используемая версия виртуалбокс - 6.1.6, будем ставить ядро версии 5.4.41
 Версия вагранта - 2.2.7
 Для работы с шаренными папками потребуется плагин, ставим его на хосте командой
@@ -64,12 +65,12 @@ grub2-set-default 0
 poweroff
 ```
 
-После выключения виртуалки вновь поднимаем ее с vagrant up, проверяем версию ядра с uname -r, проверяем, на месте ли все модули (lsmod | grep vbox), и если все ок - меняем вагрантфайл для работы с шаренными папками. 
+После выключения виртуалки вновь поднимаем ее с vagrant up, проверяем версию ядра с uname -r, проверяем, на месте ли все модули (```lsmod | grep vbox```), и если все ок - меняем вагрантфайл для работы с шаренными папками. 
 Я создал для этого отдельную папку, чтобы не тащить в виртуалку весь мусор с хоста.
 ```
 config.vm.synced_folder "shared", "/vagrant", type:"virtualbox", create: true
 ```
-Далее делаем vagrant reload и проверяем работу шары.
+Далее делаем ```vagrant reload``` и проверяем работу шары.
 
 ### Создание вагрант-бокса
 Есть два пути: packer и vagrant package
@@ -101,4 +102,4 @@ vagrant package --output centos7_5.4.11.src.vbguest.box
 vagrant cloud auth login
 vagrant cloud publish --release Iruta-san/centos-7_5.4.41 1.1 \ virtualbox centos7_5.4.11.src.vbguest.box
 ```
-Результирующий Vagrantfile, использующий свежезалитый бокс лежит (ссылка)
+Результирующий Vagrantfile, использующий свежезалитый бокс лежит [в репозитории](https://github.com/Iruta-san/otus-linux/blob/master/01-box-with-updated-kernel/from_src/Vagrantfile)
