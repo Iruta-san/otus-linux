@@ -2,6 +2,8 @@
 
 # clean all
 yum update -y
+# Delete unused kernel
+yum remove kernel-3*
 yum clean all
 
 
@@ -28,6 +30,6 @@ rm -rf /run/log/journal/*
 dd if=/dev/zero of=/EMPTY bs=1M
 rm -f /EMPTY
 sync
-#HAHAHAHAhaha... NO!
+#HAhaha... NO!
 #grub2-set-default 1
 #echo "###   Hi from secone stage" >> /boot/grub2/grub.cfg
