@@ -9,10 +9,9 @@
 # Еще надо понять, как из вывода убрать один(последний?) диск, чтобы оставить его под запас.
 # Как вариант, брать все возможные диски и подставлять их количество через wc
 
-
 mdadm --zero-superblock --force /dev/sd{b,c,d,e,f}
 
-#Создаем RAID5
+# Создаем RAID5
 mdadm --create --verbose /dev/md0 -l 5 -n 5 /dev/sd{b,c,d,e,f}
 
 # Записываем в конфигурацию
@@ -37,4 +36,4 @@ for i in $(seq 1 5); do
 done
 
 # Генерируем конфиг fstab для автомонтирования
-blkid | grep md0p | awk '{print $2" "$1}' | sed 's/.$//' | sed 's/\/dev\/md0p/\/raid\/part/g' | sed 's/$/ ext4 defaults 0 0/g' | sudo tee -a /etc/fstab
+lsblk -f | grep md0p | awk '{print $3" "$4" ext4 defaults 0 0"}' | sort | uniq >> /etc/fstab

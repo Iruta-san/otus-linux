@@ -138,14 +138,9 @@ https://linux.die.net/man/5/mdadm.conf
 Перезагружаемся и видим, что рейд собрался, но ФС не смонтированы - забыли добавить их в fstab
 > Никогда не трать 10 минут на ручную задачу, которую можно автоматизировать за 10 часов  
 
-Генерим конфиг фстаб. Здесь мне помогает решение монтировать ФС в директории с соответствующими номерами на конце)))  
+Генерим конфиг фстаб. Скрипт работает только если ФС были смонтированы ранее. У нас уже смонтированы.
 ```
-sudo blkid | grep md0p | awk '{print $2" "$1}' | sed 's/.$//' | sed 's/\/dev\/md0p/\/raid\/part/g' | sed 's/$/ ext4 defaults 0 0/g' | sudo tee -a /etc/fstab
-UUID="4a035d97-5115-4a09-9b60-bc9860b4fda8" /raid/part1 ext4 defaults 0 0
-UUID="ffc8aa0f-50d7-4789-9dc5-e422fd3177b6" /raid/part2 ext4 defaults 0 0
-UUID="48e0cc5b-ed5a-4613-b516-29f514ef2e7b" /raid/part3 ext4 defaults 0 0
-UUID="98ae2606-10ef-4c14-bfad-4efb7835c2a2" /raid/part4 ext4 defaults 0 0
-UUID="ef44fce1-cdde-4d13-91f4-d989458b2341" /raid/part5 ext4 defaults 0 0
+lsblk -f | grep md0p | awk '{print $3" "$4" ext4 defaults 0 0"}' | sort | uniq >> /etc/fstab
 [vagrant@mdadm ~]$ cat /etc/fstab
 
 #
@@ -163,3 +158,75 @@ UUID="48e0cc5b-ed5a-4613-b516-29f514ef2e7b" /raid/part3 ext4 defaults 0 0
 UUID="98ae2606-10ef-4c14-bfad-4efb7835c2a2" /raid/part4 ext4 defaults 0 0
 UUID="ef44fce1-cdde-4d13-91f4-d989458b2341" /raid/part5 ext4 defaults 0 0
 ```
+### Сломать/починить RAID
+"Ломаем" диск:  
+```
+[root@mdadm vagrant]# mdadm /dev/md0 --fail /dev/sdc
+mdadm: set /dev/sdc faulty in /dev/md0
+```
+Смотрим, что получилось:
+```
+[root@mdadm vagrant]# cat /proc/mdstat 
+Personalities : [raid6] [raid5] [raid4] 
+md0 : active raid5 sdf[5] sde[3] sdb[0] sdd[2] sdc[1](F)
+      1015808 blocks super 1.2 level 5, 512k chunk, algorithm 2 [5/4] [U_UUU]
+      
+unused devices: <none>
+[root@mdadm vagrant]# mdadm -D /dev/md0
+/dev/md0:
+           Version : 1.2
+     Creation Time : Sun May 17 20:36:15 2020
+        Raid Level : raid5
+        Array Size : 1015808 (992.00 MiB 1040.19 MB)
+     Used Dev Size : 253952 (248.00 MiB 260.05 MB)
+      Raid Devices : 5
+     Total Devices : 5
+       Persistence : Superblock is persistent
+
+       Update Time : Tue May 19 07:56:40 2020
+             State : clean, degraded 
+    Active Devices : 4
+   Working Devices : 4
+    Failed Devices : 1
+     Spare Devices : 0
+
+            Layout : left-symmetric
+        Chunk Size : 512K
+
+Consistency Policy : resync
+
+              Name : mdadm:0  (local to host mdadm)
+              UUID : 803a1caa:ea531fca:9f52f5bd:b5148010
+            Events : 20
+
+    Number   Major   Minor   RaidDevice State
+       0       8       16        0      active sync   /dev/sdb
+       -       0        0        1      removed
+       2       8       48        2      active sync   /dev/sdd
+       3       8       64        3      active sync   /dev/sde
+       5       8       80        4      active sync   /dev/sdf
+
+       1       8       32        -      faulty   /dev/sdc
+```
+Удаляем сломанный диск:
+```
+[root@mdadm vagrant]# mdadm /dev/md0 --remove /dev/sdc
+mdadm: hot removed /dev/sdc from /dev/md0
+```
+Добавляем вместо сломанного диска новый и смотрим, пошло ли восстановление:
+```
+[root@mdadm vagrant]# mdadm /dev/md0 --add /dev/sdg
+mdadm: added /dev/sdg
+[root@mdadm vagrant]# cat /proc/mdstat 
+Personalities : [raid6] [raid5] [raid4] 
+md0 : active raid5 sdg[6] sdf[5] sde[3] sdb[0] sdd[2]
+      1015808 blocks super 1.2 level 5, 512k chunk, algorithm 2 [5/4] [U_UUU]
+      [=======>.............]  recovery = 38.8% (98816/253952) finish=0.1min speed=19763K/sec
+      
+unused devices: <none>
+[root@mdadm vagrant]#
+```
+
+### *Доп. задание - Vagrantfile, который сразу собирает систему с подключенным рейдом
+Результирующий Vagrantfile лежит в репозитории (ссылка)
+В скрипт копируем все наши ручные действия, адаптируя их под запуск с правами рута.
