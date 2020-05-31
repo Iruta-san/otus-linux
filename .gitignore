@@ -1,2 +1,5 @@
 .vagrant
 *.vdi
+*.iso
+*.box
+*.vmdk
