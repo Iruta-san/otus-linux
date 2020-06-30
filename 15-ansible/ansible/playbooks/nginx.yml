@@ -3,16 +3,16 @@
   become: true
 
   vars:
-    nginx_listen_port: 8081
-    ansible_managed: created with ansible, do not touch!
+    nginx_listen_port: 8080
   tasks:
-    - name: Install EPEL repo with yum
+    - name: Install EPEL repo with yum_repository
       yum_repository:
         name: epel-release
         description: Centos 7 Epel Repo
         baseurl: https://dl.fedoraproject.org/pub/epel/$releasever/$basearch
-        mirrorlist: mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+        mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
         state: present
+        enabled: yes
       tags:
         - epel-package
         - packages
@@ -21,8 +21,11 @@
       yum:
         name: nginx
         state: latest
+        disable_gpg_check: yes
+#        enablerepo:
+#          - epel-release
       notify:
-         - restart_nginx
+        - restart_nginx
       tags:
         - nginx-package
         - packages

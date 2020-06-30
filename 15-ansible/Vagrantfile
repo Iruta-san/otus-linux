@@ -26,8 +26,8 @@ Vagrant.configure("2") do |config|
     MACHINES.each do |boxname, boxconfig|
 
         config.vm.define boxname do |box|
-        	if boxconfig[:share] == '1'
-#         	        box.vm.synced_folder "ansible", "/home/vagrant/ansible", type: "virtualbox"
+                if boxconfig[:share] == '1'
+         	        box.vm.synced_folder "ansible", "/home/vagrant/ansible", type: "virtualbox"
                 else
 	        	box.vm.synced_folder ".", "/vagrant", disabled: true
         	end
@@ -46,8 +46,10 @@ Vagrant.configure("2") do |config|
 	    box.vm.provision "file", source: "~/.ssh/id_ed25519.pub", destination: "/tmp/authorized_keys"
 
             box.ssh.insert_key = false
-            if boxname == 'ansible'
+            if box.vm.hostname == 'ansible'
 	        box.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", "~/.ssh/id_ed25519"]
+                box.vm.provision "file", source: "~/.ssh/id_ed25519", destination: "/home/vagrant/ansible/.ssh/ansible_key"
+                box.vm.provision "shell", inline: "chmod 600 ~vagrant/ansible/.ssh/ansible_key"
             end
 
         box.vm.provision "shell", inline: <<-SHELL
