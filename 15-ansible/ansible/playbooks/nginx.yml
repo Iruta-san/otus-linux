@@ -1,17 +1,18 @@
-- name: Install EPEL repo
+- name: Install NGINX from Epel 
   hosts: nginx
   become: true
 
   vars:
-    nginx_listen_port: 8080
-
+    nginx_listen_port: 8081
+    ansible_managed: created with ansible, do not touch!
   tasks:
     - name: Install EPEL repo with yum
-      yum:
+      yum_repository:
         name: epel-release
+        description: Centos 7 Epel Repo
+        baseurl: https://dl.fedoraproject.org/pub/epel/$releasever/$basearch
+        mirrorlist: mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
         state: present
-      notify:
-         - restart nginx
       tags:
         - epel-package
         - packages
@@ -21,7 +22,7 @@
         name: nginx
         state: latest
       notify:
-        - reload nginx
+         - restart_nginx
       tags:
         - nginx-package
         - packages
@@ -30,17 +31,19 @@
       template:
         src: ../templates/nginx.conf.j2
         dest: /etc/nginx/nginx.conf
+      notify:
+        - reload_nginx
       tags: 
         - nginx-configuration 
 
   handlers:
-    - name: restart nginx
+    - name: restart_nginx
       systemd:
         name: nginx
         state: restarted
         enabled: yes
     
-    - name: reload nginx
+    - name: reload_nginx
       systemd:
         name: nginx
         state: reloaded
