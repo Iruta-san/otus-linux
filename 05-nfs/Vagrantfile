@@ -4,19 +4,19 @@ home = ENV['HOME']
 ENV["LC_ALL"] = "en_US.UTF-8"
 
 MACHINES = {
-#  :nfs_client => {
-#        :box_name => "centos/7",
-#        :ip_addr => '192.168.11.101',
+ :nfs_srv => {
+       :box_name => "centos/7",
+       :ip_addr => '192.168.11.102',
 #	:share => '1',
 #	:ssh_agent => true,
 #        :script => "pip3 install ansible"
-#  },
-  :nfs_srv => {
+  },
+  :nfs_client => {
         :box_name => "centos/7",
-        :ip_addr => '192.168.11.102',
-	:share => '0',
-	:ssh_agent => false,
-        :script => 'echo Nothing here'
+        :ip_addr => '192.168.11.101',
+#	:share => '0',
+#	:ssh_agent => false,
+#        :script => 'echo Nothing here'
   }
 }
 
@@ -60,7 +60,8 @@ Vagrant.configure("2") do |config|
 #            yum install -y python3
 #            SHELL
 #        box.vm.provision "shell", inline: boxconfig[:script]
-        box.vm.provision "ansible" 
+        box.vm.provision "ansible" do |ansible|
+          ansible.playbook = boxname+".yml"
          
         end
     end
