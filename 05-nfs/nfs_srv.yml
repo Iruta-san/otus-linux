@@ -1,0 +1,67 @@
+- name: Setup NSF on the server
+  hosts: nfs_srv
+  become: true
+
+  tasks:
+    - name: Install nfs
+      yum:
+        name: nfs-utils
+        state: present
+        enabled: yes
+    
+    - name: Create shares
+      file:
+        path: /opt/exports
+        state: directory
+        mode: 555
+        owner: nfsnobody
+        group: nfsnobody
+      file:
+        path: /opt/exports/upload
+        state: directory
+        mode: 777
+        owner: nfsnobody
+        group: nfsnobody
+
+    - name: Copy NFS config
+      template: src=exports.j2 
+        dest: /etc/exports 
+        owner: root 
+        group: root
+      notify: restart NFS
+    
+    - name: Copy firewalld service
+      copy:
+        src: nfsv3.xml
+        dest: /usr/lib/firewalld/services
+        notify: restart firewall
+    - name: Enable firewalld service
+      firewalld:
+        permanent: yes
+        immediate: yes
+        offline: yes
+        service: nfsv3
+      firewalld:
+        permanent: yes
+        immediate: yes
+        offline: yes
+        service: mountd
+      firewalld:
+        permanent: yes
+        immediate: yes
+        offline: yes
+        service: rpc-bind
+
+
+  handlers:
+    - name: restart NFS
+      systemd:
+        name: nfs
+        state: started
+        enabled: yes
+  - name: restart firewall
+    systemd:
+      name: firewalld
+      state: restarted
+      enabled: yes
+    
