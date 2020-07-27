@@ -40,17 +40,17 @@ Vagrant.configure("2") do |config|
                 vb.customize ["modifyvm", :id, "--memory", "256"]
             end
           
-	    # Setting SSH keys from host.
-	    box.ssh.forward_agent = boxconfig[:ssh_agent]
-	    # Replace for your own keys!
-	    box.vm.provision "file", source: "~/.ssh/id_ed25519.pub", destination: "/tmp/authorized_keys"
-
-            box.ssh.insert_key = false
-            if box.vm.hostname == 'ansible'
-	        box.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", "~/.ssh/id_ed25519"]
-                box.vm.provision "file", source: "~/.ssh/id_ed25519", destination: "/home/vagrant/ansible/.ssh/ansible_key"
-                box.vm.provision "shell", inline: "chmod 600 ~vagrant/ansible/.ssh/ansible_key"
-            end
+#	    # Setting SSH keys from host.
+#	    box.ssh.forward_agent = boxconfig[:ssh_agent]
+#	    # Replace for your own keys!
+#	    box.vm.provision "file", source: "~/.ssh/id_ed25519.pub", destination: "/tmp/authorized_keys"
+#
+#            box.ssh.insert_key = false
+#            if box.vm.hostname == 'ansible'
+#	        box.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", "~/.ssh/id_ed25519"]
+#                box.vm.provision "file", source: "~/.ssh/id_ed25519", destination: "/home/vagrant/ansible/.ssh/ansible_key"
+#                box.vm.provision "shell", inline: "chmod 600 ~vagrant/ansible/.ssh/ansible_key"
+#            end
 
 #        box.vm.provision "shell", inline: <<-SHELL
 #	    cat /tmp/authorized_keys >> ~vagrant/.ssh/authorized_keys
