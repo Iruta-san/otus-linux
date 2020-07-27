@@ -1,0 +1,33 @@
+systemctl enable firewalld 
+systemctl start firewalld
+
+yum install -y nfs-utils
+systemctl start nfs
+
+#правила для сервера
+firewall-cmd --permanent --add-service=mountd
+firewall-cmd --permanent --add-service=rpc-bind
+firewall-cmd --permanent --new-service-from-file=nfsv3.xml
+#ФАЙЛ С ПОРТАМИ ОТСЮДА https://computingforgeeks.com/configure-nfsv3-and-nfsv4-on-centos-7/
+firewall-cmd --permanent --add-service=nfsv3
+firewall-cmd --reload
+
+echo "/opt/exports/ *(rw,async,nohide,all_squash,anonuid=65534,anongid=65534)" >  /etc/exports
+
+sudo mkdir /opt/exports
+chmod 555 /opt/exports
+cd /opt/exports/
+mkdir upload
+sudo mkdir upload
+chmod 777 upload #???
+chown -R nfsnobody.nfsnobody /opt/exports/
+sudo touch file{1..10}
+
+
+
+Client:
+sudo yum install rpcbind nfs-utils -y
+sudo mount 192.168.11.101:/opt/exports/ /mnt #  проверка нфс в целом
+sudo mount -t nfs -o vers=3 -o proto=udp 192.168.11.101:/opt/exports/ /mnt
+#строка fstab
+192.168.11.101:/opt/exports/ /mnt nfs   
