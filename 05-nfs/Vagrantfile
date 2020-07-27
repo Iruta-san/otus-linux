@@ -6,17 +6,11 @@ ENV["LC_ALL"] = "en_US.UTF-8"
 MACHINES = {
  :nfs_srv => {
        :box_name => "centos/7",
-       :ip_addr => '192.168.11.102',
-#	:share => '1',
-#	:ssh_agent => true,
-#        :script => "pip3 install ansible"
+       :ip_addr => '192.168.11.102'
   },
   :nfs_client => {
         :box_name => "centos/7",
-        :ip_addr => '192.168.11.101',
-#	:share => '0',
-#	:ssh_agent => false,
-#        :script => 'echo Nothing here'
+        :ip_addr => '192.168.11.101'
   }
 }
 
@@ -26,12 +20,7 @@ Vagrant.configure("2") do |config|
     MACHINES.each do |boxname, boxconfig|
 
         config.vm.define boxname do |box|
-#                if boxconfig[:share] == '1'
-#         	        box.vm.synced_folder "ansible", "/home/vagrant/ansible", type: "virtualbox"
-#                else
-#	        	box.vm.synced_folder ".", "/vagrant", disabled: true
-#        	end
-
+            box.vm.synced_folder ".", "/vagrant", disabled: true
             box.vm.box = boxconfig[:box_name]
             box.vm.hostname = boxname.to_s
 	    
@@ -40,29 +29,9 @@ Vagrant.configure("2") do |config|
                 vb.customize ["modifyvm", :id, "--memory", "256"]
             end
           
-#	    # Setting SSH keys from host.
-#	    box.ssh.forward_agent = boxconfig[:ssh_agent]
-#	    # Replace for your own keys!
-#	    box.vm.provision "file", source: "~/.ssh/id_ed25519.pub", destination: "/tmp/authorized_keys"
-#
-#            box.ssh.insert_key = false
-#            if box.vm.hostname == 'ansible'
-#	        box.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", "~/.ssh/id_ed25519"]
-#                box.vm.provision "file", source: "~/.ssh/id_ed25519", destination: "/home/vagrant/ansible/.ssh/ansible_key"
-#                box.vm.provision "shell", inline: "chmod 600 ~vagrant/ansible/.ssh/ansible_key"
-#            end
-
-#        box.vm.provision "shell", inline: <<-SHELL
-#	    cat /tmp/authorized_keys >> ~vagrant/.ssh/authorized_keys
-#	    rm /tmp/authorized_keys
-#            mkdir -p ~root/.ssh
-#            cp ~vagrant/.ssh/auth* ~root/.ssh
-#            yum install -y python3
-#            SHELL
-#        box.vm.provision "shell", inline: boxconfig[:script]
-        box.vm.provision "ansible" do |ansible|
-          ansible.playbook = boxname+".yml"
-         
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = boxname+".yml"
+            end
         end
     end
 end
