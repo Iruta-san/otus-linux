@@ -1,0 +1,23 @@
+- name: Setup NFS on the client
+  hosts: nfsclient
+  become: true
+
+  tasks:
+    - name: Install nfs for client
+#      yum:
+#        name: nfs-utils
+#        state: present
+#        enabled: yes
+      yum:
+        name: ["nfs-utils","rpcbind"]
+        state: present
+    
+    - name: add NFS mount
+      mount:
+        boot: yes
+        fstype: nfs
+        opts: rw,vers=3,proto=udp
+        path: /mnt/share
+        src: 192.168.11.102:/opt/exports/
+        state: mounted
+        

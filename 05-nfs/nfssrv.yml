@@ -1,0 +1,72 @@
+- name: Setup NFS on the server
+  hosts: nfssrv
+  become: true
+
+  tasks:
+    - name: Install nfs
+      yum:
+        name: nfs-utils
+        state: present
+    
+    - name: Create share
+      file:
+        path: /opt/exports
+        state: directory
+        mode: '555'
+        owner: nfsnobody
+        group: nfsnobody
+
+    - name: Create upload directory
+      file:
+        path: /opt/exports/upload
+        state: directory
+        mode: '777'
+        owner: nfsnobody
+        group: nfsnobody
+    - name: Create test files in shares
+      file:
+        path: /opt/exports/ {{ item }}
+        state: touch
+      with_items:
+        - file1
+        - file2
+        - file3
+        
+    - name: Copy NFS config
+      copy: 
+        src: exports 
+        dest: /etc/exports 
+        owner: root 
+        group: root
+  
+    - name: Restart rpcbind and NFS
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+        enabled: yes
+      with_items:
+        - rpcbind
+        - nfs
+     
+    - name: Copy firewalld service
+      copy:
+        src: nfsv3.xml
+        dest: /usr/lib/firewalld/services
+    
+    - name: Start firewalld
+      systemd:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Enable firewalld service
+      firewalld:
+        state: enabled
+        permanent: yes
+        immediate: yes
+        offline: yes
+        service: "{{ item }}"
+      with_items:
+        - nfsv3
+        - mountd
+        - rpc-bind
