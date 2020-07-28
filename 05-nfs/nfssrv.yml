@@ -48,7 +48,7 @@
         - rpcbind
         - nfs
      
-    - name: Copy firewalld service
+    - name: Copy firewalld service file
       copy:
         src: nfsv3.xml
         dest: /usr/lib/firewalld/services

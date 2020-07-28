@@ -18,7 +18,9 @@ Vagrant.configure("2") do |config|
     MACHINES.each do |boxconfig|
     
         config.vm.define boxconfig[:name] do |box|
+            # Storing playbook name for ansible in a variable
             playbook = boxconfig[:name].to_s+".yml"
+            
             box.vm.synced_folder ".", "/vagrant", disabled: true
             box.vm.box = boxconfig[:box_name]
             box.vm.hostname = boxconfig[:name].to_s
